@@ -23,6 +23,7 @@ public class Hero {
     private int scoreView;
     private int hpMax = 50;
     private int hp = hpMax;
+    private int hpView = hp;
     private Circle hitArea;
 
     private final float BASE_SIZE = 64f;
@@ -34,6 +35,10 @@ public class Hero {
 
     public int getScoreView() {
         return scoreView;
+    }
+
+    public int getHpView() {
+        return hpView;
     }
 
     public Vector2 getPosition() {
@@ -48,6 +53,10 @@ public class Hero {
         return angle;
     }
 
+    public Circle getHitArea() {
+        return hitArea;
+    }
+
     public Hero(GameController gc) {
         this.gc = gc;
         this.texture = Assets.getInstance().getAtlas().findRegion("ship");
@@ -55,6 +64,7 @@ public class Hero {
         this.velocity = new Vector2(0, 0);
         this.angle = 0.0f;
         this.enginePower = 700.0f;
+        this.hitArea = new Circle(position, BASE_RADIUS);
     }
 
     public void addScore(int amount) {
@@ -75,9 +85,16 @@ public class Hero {
             }
         }
 
+        if (hpView > hp) {
+            hpView -= 20 * dt;
+            if (hpView < hp) {
+                hpView = hp;
+            }
+        }
+
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            if (fireTimer > 0.2) {
+            if (fireTimer > 0.2f) {
                 fireTimer = 0.0f;
 
                 float wx = position.x + MathUtils.cosDeg(angle + 90) * 20;
@@ -107,6 +124,10 @@ public class Hero {
             velocity.x += MathUtils.cosDeg(angle) * enginePower * dt;
             velocity.y += MathUtils.sinDeg(angle) * enginePower * dt;
         }
+        if(Gdx.input.isKeyPressed(Input.Keys.S)) {
+            velocity.x -= MathUtils.cosDeg(angle) * enginePower * 0.5 * dt;
+            velocity.y -= MathUtils.sinDeg(angle) * enginePower * 0.5 * dt;
+        }
 
         position.mulAdd(velocity, dt);
         float stopKoef = 1.0f - dt;
@@ -116,6 +137,7 @@ public class Hero {
         velocity.scl(stopKoef);
 
         checkBorders();
+        hitArea.setPosition(position);
     }
 
     public void checkBorders() {
@@ -135,5 +157,18 @@ public class Hero {
             position.y = ScreenManager.SCREEN_HEIGHT - 32f;
             velocity.y *= -0.5f;
         }
+    }
+
+    public boolean takeDamage(int amount) {
+        hp-=amount;
+        if (hp > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public int getHp() {
+        return hp;
     }
 }
